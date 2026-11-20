@@ -632,11 +632,9 @@ impl DrawPlanner {
         self.windows.retain(|_, ws| ws.seen >= before);
         // the quick look leaves the objects of a window it planned unvisited
         for ws in self.windows.values() {
-            for j in 0..ws.count {
-                if let Some(o) = ws.owned[j] {
-                    if let Some(rec) = self.owners.get_mut(&o) {
-                        rec.seen = self.frames;
-                    }
+            for o in ws.owned[..ws.count].iter().flatten() {
+                if let Some(rec) = self.owners.get_mut(o) {
+                    rec.seen = self.frames;
                 }
             }
         }
@@ -723,8 +721,7 @@ impl DrawPlanner {
         let shaped = self.fill_sequence(ws, cmds, parsed);
         let mut resting = false;
         let mut changed = false;
-        for i in 0..self.item_count {
-            let item = &self.items[i];
+        for item in &self.items[..self.item_count] {
             if item.owned.is_none() || item.run_index >= 0 {
                 continue;
             }
@@ -1240,8 +1237,8 @@ impl DrawPlanner {
             self.run_moved.resize(run_count * 2, false);
             self.boxes.resize_with(run_count * 2, Extent::default);
         }
-        for r in 0..run_count {
-            self.run_moved[r] = false;
+        for moved in &mut self.run_moved[..run_count] {
+            *moved = false;
         }
         let mut outside = false;
         let mut resting = false;
